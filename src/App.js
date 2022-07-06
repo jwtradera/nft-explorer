@@ -68,18 +68,18 @@ function App() {
 
   useEffect(() => {
     const searchNfts = async (addresses) => {
-      setLoadNFT(true);
-      let _nfts = [];
-      for (const address of addresses) {
-        _nfts.push(await mx.nfts().findByMint(address));
+      console.log(offset);
+      let _nfts = await mx.nfts().findAllByMintList(addresses);
+      for (const _nft of _nfts) {
+        await _nft.metadataTask.run();
       }
 
       setNfts(_nfts);
       setLoadNFT(false);
     };
 
-    console.log(offset);
     if (mints && mints.length > 0) {
+      setLoadNFT(true);
       searchNfts(mints.slice(offset, offset + display_len));
     }
   }, [offset, mints]);
@@ -162,14 +162,14 @@ function App() {
                   ))}
                 </div>
               </div>
-              <div className="flex justify-between my-4">
+              <div className="flex justify-between my-8">
                 <h1 className="text-2xl text-black">Related NFTs</h1>
                 <div className="flex gap-2">
                   <button
                     type="button"
                     className="bg-slate-400 text-white border border-gray-400 rounded-xl px-4 cursor-pointer hover:border-gray-200"
                     onClick={handlePrev}
-                    disabled={loading}
+                    disabled={loading || loadNFT}
                   >
                     Prev
                   </button>
@@ -177,7 +177,7 @@ function App() {
                     type="button"
                     className="bg-slate-400 text-white border border-gray-400 rounded-xl px-4 cursor-pointer hover:border-gray-200"
                     onClick={handleNext}
-                    disabled={loading}
+                    disabled={loading || loadNFT}
                   >
                     Next
                   </button>
@@ -186,13 +186,17 @@ function App() {
               {loadNFT ? (
                 <div className="text-center">Loading NFT...</div>
               ) : (
-                <div className="grid lg:grid-cols-4 md:grid-cols-3 sm:grid-cols-2 grid-cols-1 gap-3">
+                <div className="grid lg:grid-cols-4 md:grid-cols-3 sm:grid-cols-2 grid-cols-1 gap-3 justify-content-center">
                   {nfts.map((nft, idx) => (
                     <div
-                      className="border rounded-xl border-gray-400 p-4"
+                      className="border rounded-xl border-gray-200 p-4 w-56 mx-auto"
                       key={idx}
                     >
-                      <img src={nft.metadata.image} alt={nft.name} />
+                      <img
+                        src={nft.metadata.image}
+                        alt={nft.name}
+                        className="w-48 h-48"
+                      />
                       <strong>{nft.name}</strong>
                     </div>
                   ))}
